@@ -19,12 +19,7 @@
     ]
   ],
   "plugins": [
-    [
-      "@babel/plugin-proposal-class-properties",
-      {
-        "loose": false
-      }
-    ],
+    ["react-hot-loader/babel"],
     [
       "@babel/plugin-transform-react-jsx",
       {

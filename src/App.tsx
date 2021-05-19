@@ -1,12 +1,15 @@
 import { BrowserRouter, Route, Switch } from "react-router-dom";
-import { Room } from "./routes";
+import { Room, Home } from "./routes";
 
-export const App = () => {
+const App = () => {
   return (
     <BrowserRouter>
       <Switch>
-        <Route path="/room/:roomId" component={Room} />
+        <Route path="/" exact component={Home} />
+        <Route path="/room/:roomId" exact  component={Room} />
       </Switch>
     </BrowserRouter>
   );
 };
+
+export default App;

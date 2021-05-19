@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": "./*",
+    "baseUrl": "./src",
+    "paths": {
+      "~*": ["./*"]
+    },
     "outDir": "build",
     "module": "esnext",
     "target": "ES2017",
@@ -30,9 +33,7 @@
     "esModuleInterop": true,
     "rootDir": "src"
   },
-  "include": [
-    "src"
-  ],
+  "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "build",

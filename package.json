@@ -1,0 +1,43 @@
+{
+  "name": "openlook-frontend",
+  "version": "0.0.1",
+  "description": "Openlook frontend",
+  "main": "index.js",
+  "contributors": [
+    {
+      "name": "KwangHoon Kim",
+      "email": "rhkdgns9489@gmail.com",
+      "url": "https://github.com/rhkdgns95"
+    }
+  ],
+  "scripts": {
+    "start": "snowpack dev",
+    "start:clean": "snowpack dev --clean"
+  },
+  "dependencies": {
+    "@types/styled-components": "^5.1.9",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-router-dom": "^5.2.0",
+    "readable-stream": "^3.6.0",
+    "simple-peer": "^9.11.0",
+    "styled-components": "^5.3.0",
+    "wrtc": "^0.4.7"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/plugin-transform-react-jsx": "^7.14.3",
+    "@babel/preset-env": "^7.14.2",
+    "@babel/preset-react": "^7.13.13",
+    "@babel/preset-typescript": "^7.13.0",
+    "@snowpack/plugin-babel": "^2.1.7",
+    "@snowpack/plugin-dotenv": "^2.1.0",
+    "@snowpack/plugin-react-refresh": "^2.5.0",
+    "@types/react": "^17.0.6",
+    "@types/react-dom": "^17.0.5",
+    "@types/react-router-dom": "^5.1.7",
+    "@types/simple-peer": "^9.6.3",
+    "snowpack": "^3.4.0",
+    "typescript": "^4.2.4"
+  }
+}

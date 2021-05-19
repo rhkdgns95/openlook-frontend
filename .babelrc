@@ -1,0 +1,37 @@
+{
+  "presets": [
+    "@babel/preset-typescript",
+    [
+      "@babel/preset-react",
+      {
+        "runtime": "automatic"
+      }
+    ],
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "esmodules": true
+        },
+        "bugfixes": true,
+        "modules": false
+      }
+    ]
+  ],
+  "plugins": [
+    [
+      "@babel/plugin-proposal-class-properties",
+      {
+        "loose": false
+      }
+    ],
+    [
+      "@babel/plugin-transform-react-jsx",
+      {
+        "throwIfNamespace": false,
+        "runtime": "automatic",
+        "importSource": "react"
+      }
+    ]
+  ]
+}

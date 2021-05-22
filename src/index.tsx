@@ -1,7 +1,9 @@
+import { QueryClient, QueryClientProvider } from "react-query";
 import ReactDOM from "react-dom";
 import { ThemeProvider } from "styled-components";
 import App from "./App";
 import { GlobalStyles } from "./styles";
+import 'antd/dist/antd.css';
 
 if (module.hot) {
   module.hot.dispose(function() {
@@ -13,9 +15,13 @@ if (module.hot) {
   })
 }
 
+const queryClient = new QueryClient();
+
 ReactDOM.render(
   <ThemeProvider theme={{}}>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
     <GlobalStyles />
   </ThemeProvider>,
   document.getElementById("root")

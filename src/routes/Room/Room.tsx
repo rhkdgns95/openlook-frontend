@@ -1,28 +1,27 @@
 import React, { useEffect, useRef, useState } from "react";
-import { RouteComponentProps } from "react-router-dom";
+import { RouteComponentProps, useHistory } from "react-router-dom";
 import io, { Socket } from "socket.io-client";
 import Peer from "simple-peer";
 import styled from "styled-components";
 import { URL } from "../../constants";
-
-function callPeer(id) {}
-
-const addVideoStream = (stream: MediaStream) => {
-  const videoGrid = document.getElementById("videos");
-  const video = document.createElement("video");
-  video.autoplay = true;
-  video.muted = true;
-  video.srcObject = stream;
-  videoGrid?.append(video);
-};
+import { message, PageHeader, Space, Tag } from "antd";
+import { useAppStore } from "../../stores";
 
 export const Room: React.FC<RouteComponentProps> = (props) => {
+  const as = useAppStore();
+  const { push } = useHistory();
   const [peers, setPeers] = useState([]);
   const socketRef = useRef<Socket>();
   const userVideo = useRef<HTMLVideoElement | undefined>(undefined);
   const peersRef = useRef([]);
-  const [stream, setStream] = useState<MediaStream | undefined>(undefined);
-  const roomId = props.match.params.roomId;
+  const roomId = Number(props.match.params?.roomId || 0);
+  const positionId = Number(props.match.params?.positionId || 0);
+
+  if (!as.isEntered) {
+    /** 단순히 URL로 접근하는 경우 */
+    message.warn("올바른 접근방식이 아닙니다.");
+    push("/");
+  }
 
   useEffect(() => {
     socketRef.current = io(URL);
@@ -33,72 +32,90 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
       })
       .then((stream) => {
         userVideo.current?.srcObject = stream;
-        socketRef.current?.emit("join room", roomId);
-        socketRef.current?.on("all users", (users) => {
-          console.log("all users: ", users);
-          const peers = [];
-          users.forEach((userId) => {
-            const peer = createPeer(userId, socketRef.current?.id, stream);
-            peersRef.current.push({
-              peerId: userId,
-              peer,
-            });
-            peers.push(peer);
-          });
-          setPeers(peers);
+
+        /** 1. 방참가 */
+        socketRef.current?.emit("JOIN", {
+          roomNo: roomId,
+          positionNo: positionId,
         });
-        socketRef.current?.on("user disconnected", (payload) => {
-          console.log("payload: ", payload);
-          console.log("user disconnected: ");
-          const newPeers = peersRef.current.find(
-            (p) => p.peerId !== payload.socketId
+
+        /** 0. 연결이 끊긴경우 */
+        socketRef.current?.on("DISCONNECT", (positionNo) => {
+          console.log(
+            "before: ",
+            document.getElementById(`room-${positionNo}`)
           );
-          console.log('newPeers: ', newPeers);
-          const currentPeers = peers.filter(v => v.peerId !== payload.socketId);
-          console.log('peers: ',peers);
-          console.log('currentPeers: ',currentPeers);
-          // peersRef.current = peersRef.current.filter(
-          //   (v) => v.peerId !== payload.socketId
-          // );
-          // console.log("peers: ", peers);
-          setPeers((p) => p.filter((v) => v.peerId !== payload));
-          const item = peersRef.current.find(v => v.peerId === payload);
-          console.log("ITEM :", item);
-          item.peer.destroy();
-          console.log("peersRef.current: ", peersRef.current);
+          document.getElementById(`room-${positionNo}`)?.remove();
+          console.log(
+            "before: ",
+            document.getElementById(`room-${positionNo}`)
+          );
+          console.log("떠남: ", positionNo);
         });
-        socketRef.current?.on("user joined", (payload) => {
+
+        /** 2. 기존의 방에 대한 사용자들의 정보를 불러옮 */
+        socketRef.current?.on("GET_CURRENT_ROOM", (roomDetails) => {
+          console.log("PAYLOAD: ", roomDetails);
+          if (roomDetails.length) {
+            const peers = [];
+            if (!!roomDetails?.length) {
+              roomDetails?.forEach((roomDetail) => {
+                const peer = createPeer(
+                  roomDetail.socketId,
+                  socketRef.current?.id,
+                  stream,
+                  positionId
+                );
+                peersRef.current.push({
+                  peer,
+                  socketId: roomDetail.socketId,
+                  no: roomDetail.no,
+                });
+                peers.push({
+                  peer: peer,
+                  no: roomDetail.no,
+                });
+              });
+              setPeers(peers);
+            } else {
+              setPeers([]);
+            }
+          }
+        });
+
+        socketRef.current.on("RECEIVING SIGNAL", (payload) => {
+          const item = peersRef.current.find((p) => p.socketId === payload.id);
+          item.peer.signal(payload.signal);
+        });
+
+        socketRef.current?.on("USER JOIN", (payload) => {
           const item = peersRef.current.find(
-            (p) => p.peerId === payload.callerId
+            (p) => p.socketId === payload.callerId
           );
           if (!item) {
             const peer = addPeer(payload.signal, payload.callerId, stream);
             peersRef.current.push({
-              peerId: payload.callerId,
               peer,
+              socketId: payload.callerId,
             });
-            setPeers((users) => [...users, peer]);
+            setPeers((peers) => [...peers, { peer: peer, no: payload.no }]);
           }
         });
-
-        socketRef.current.on("receiving returned signal", (payload) => {
-          const item = peersRef.current.find((p) => p.peerId === payload.id);
-          item.peer.signal(payload.signal);
-        });
-
         console.log("stream: ", stream.id);
-
-        // if (userVideo.current) {
-        //   userVideo.current.srcObject = stream;
-        // }
       })
       .catch(() => {});
+
+    return () => {
+      socketRef.current?.disconnect();
+      // socketRef.current?.close();
+    };
   }, []);
 
   function createPeer(
     userToSignal: string,
     callerId: number,
-    stream: MediaStream
+    stream: MediaStream,
+    no: number
   ) {
     const peer = new Peer({
       initiator: true,
@@ -106,10 +123,11 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
       stream,
     });
     peer.on("signal", (signal) => {
-      socketRef.current?.emit("sending signal", {
+      socketRef.current?.emit("SENDING SIGNAL", {
         userToSignal,
         callerId,
         signal,
+        no,
       });
     });
     return peer;
@@ -127,50 +145,94 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
     });
 
     peer.on("signal", (signal) => {
-      socketRef.current.emit("returning signal", { signal, callerId });
+      socketRef.current.emit("RETURNING SIGNAL", { signal, callerId });
     });
     peer.signal(incomingSignal);
     return peer;
   }
-  console.log("PEERS: ",peers);
+  console.log("PEERS: ", peers);
   return (
-    <Container>
-      <StyledVideo muted ref={userVideo} autoPlay playsInline />
-      {peers
-        .filter((peer) => peer.readable)
-        .map((peer, index) => {
-          return <Video key={index} peer={peer} />;
-        })}
-    </Container>
+    <>
+      <PageHeader
+        className="site-page-header"
+        onBack={() => {
+          push("/");
+          as.onChangeIsEntered(false);
+        }}
+        title="뒤로가기"
+        subTitle={`${roomId}번 클래스`}
+      />
+      <Container>
+        <Space
+          direction="vertical"
+          style={{ width: "100%", alignItems: "center" }}
+        >
+          <Tag color="blue">{positionId}번 자리</Tag>
+          <StyledVideo ref={userVideo} autoPlay playsInline />
+        </Space>
+        <Space
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          wrap
+        >
+          {peers.map((peer, index) => {
+            return <Video key={peer.no} no={peer.no} peer={peer.peer} />;
+          })}
+        </Space>
+        <hr />
+      </Container>
+    </>
   );
 };
 
 const Video = (props) => {
-  const ref = useRef();
+  const ref = useRef<HTMLVideoElement>();
 
   useEffect(() => {
     props.peer.on("stream", (stream) => {
       ref.current.srcObject = stream;
     });
+    props.peer.on("close", () => {
+      document.getElementById(`container-${props.no}`)?.remove();
+    });
+    return () => {
+      document.getElementById(`container-${props.no}`)?.remove();
+      // ref.current?.remove();
+    };
   }, []);
 
-  return <StyledVideo playsInline autoPlay ref={ref} />;
+  return (
+    <VideoContainer id={`room-${props.no}`}>
+      <Tag color="blue">{props.no}번 자리</Tag>
+      {/* <StyledVideo playsInline autoPlay ref={ref} muted /> */}
+      <StyledVideo playsInline autoPlay ref={ref} />
+    </VideoContainer>
+  );
 };
 
 const MyVideo: React.FC<{ ref: any }> = ({ ref }) => {
-  return <video ref={ref} autoPlay playsInline muted />;
+  return <video ref={ref} autoPlay playsInline />;
 };
 
 const Container = styled.div`
-  padding: 20px;
   display: flex;
-  height: 100vh;
-  width: 90%;
-  margin: auto;
-  flex-wrap: wrap;
+  min-height: 80vh;
+  width: 100%;
+  margin: 0 auto;
+  flex-flow: column;
+  justify-content: center;
 `;
-
+const VideoContainer = styled.div`
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+`;
 const StyledVideo = styled.video`
-  height: 40%;
-  width: 50%;
+  max-height: 400px;
+  box-shadow: 0 2px 14px rgb(0 0 0 / 42%);
+  border-radius: 6px;
 `;

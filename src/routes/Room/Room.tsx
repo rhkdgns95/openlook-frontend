@@ -7,6 +7,17 @@ import { URL } from "../../constants";
 import { message, PageHeader, Space, Tag } from "antd";
 import { useAppStore } from "../../stores";
 
+enum Channel {
+  JOIN = "JOIN",
+  DISCONNECT = "DISCONNECT",
+  GET_CURRENT_ROOM = "GET_CURRENT_ROOM",
+  JOIN_ROOM = "JOIN_ROOM",
+  NEW_USER = "NEW_USER",
+  RECEIVING_SIGNAL = "RECEIVING_SIGNAL",
+  SENDING_SIGNAL = "SENDING_SIGNAL",
+  RETURNING_SIGNAL = "RETURNING_SIGNAL",
+}
+
 export const Room: React.FC<RouteComponentProps> = (props) => {
   const as = useAppStore();
   const { push } = useHistory();
@@ -34,13 +45,13 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
         userVideo.current?.srcObject = stream;
 
         /** 1. 방참가 */
-        socketRef.current?.emit("JOIN", {
+        socketRef.current?.emit(Channel.JOIN, {
           roomNo: roomId,
           positionNo: positionId,
         });
 
-        /** 0. 연결이 끊긴경우 */
-        socketRef.current?.on("DISCONNECT", (positionNo) => {
+        /** 2. 연결이 끊긴경우 */
+        socketRef.current?.on(Channel.DISCONNECT, (positionNo) => {
           console.log(
             "before: ",
             document.getElementById(`room-${positionNo}`)
@@ -53,8 +64,8 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
           console.log("떠남: ", positionNo);
         });
 
-        /** 2. 기존의 방에 대한 사용자들의 정보를 불러옮 */
-        socketRef.current?.on("GET_CURRENT_ROOM", (roomDetails) => {
+        /** 3. 기존의 방에 대한 사용자들의 정보를 불러옮 */
+        socketRef.current?.on(Channel.GET_CURRENT_ROOM, (roomDetails) => {
           console.log("PAYLOAD: ", roomDetails);
           if (roomDetails.length) {
             const peers = [];
@@ -83,12 +94,8 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
           }
         });
 
-        socketRef.current.on("RECEIVING SIGNAL", (payload) => {
-          const item = peersRef.current.find((p) => p.socketId === payload.id);
-          item.peer.signal(payload.signal);
-        });
-
-        socketRef.current?.on("USER JOIN", (payload) => {
+        /** 4. 새 유저가 접속한경우. */
+        socketRef.current?.on(Channel.NEW_USER, (payload) => {
           const item = peersRef.current.find(
             (p) => p.socketId === payload.callerId
           );
@@ -102,6 +109,12 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
           }
         });
         console.log("stream: ", stream.id);
+
+        /** 5. 스트림 정보를 받기위함. */
+        socketRef.current.on(Channel.RECEIVING_SIGNAL, (payload) => {
+          const item = peersRef.current.find((p) => p.socketId === payload.id);
+          item.peer.signal(payload.signal);
+        });
       })
       .catch(() => {});
 
@@ -123,7 +136,8 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
       stream,
     });
     peer.on("signal", (signal) => {
-      socketRef.current?.emit("SENDING SIGNAL", {
+      /** 6. 스트림 정보를 전송함. */
+      socketRef.current?.emit(Channel.SENDING_SIGNAL, {
         userToSignal,
         callerId,
         signal,
@@ -145,7 +159,7 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
     });
 
     peer.on("signal", (signal) => {
-      socketRef.current.emit("RETURNING SIGNAL", { signal, callerId });
+      socketRef.current.emit(Channel.RETURNING_SIGNAL, { signal, callerId });
     });
     peer.signal(incomingSignal);
     return peer;
@@ -206,7 +220,7 @@ const Video = (props) => {
 
   return (
     <VideoContainer id={`room-${props.no}`}>
-      <Tag color="blue">{props.no}번 자리</Tag>
+      <Tag color="orange">{props.no}번 자리</Tag>
       {/* <StyledVideo playsInline autoPlay ref={ref} muted /> */}
       <StyledVideo playsInline autoPlay ref={ref} />
     </VideoContainer>

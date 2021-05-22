@@ -1,4 +1,4 @@
-import { Form, Button, Select, Space, Typography } from "antd";
+import { Form, Button, Select, Space, Typography, message } from "antd";
 import { useState } from "react";
 import { useMutation } from "react-query";
 import { useHistory } from "react-router-dom";
@@ -29,7 +29,7 @@ export const Home = () => {
           as.onChangeIsEntered(true);
           push(`/room/${res.roomNo}/position/${res.positionNo}`);
         } else {
-          alert("이미 존재하는 방입니다.");
+          message.error('이미 존재하는 자리입니다.');
         }
       },
       onError: (e) => {

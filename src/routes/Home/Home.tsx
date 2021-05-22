@@ -1,16 +1,34 @@
 import { Form, Button, Select, Space, Typography, message } from "antd";
 import { useState } from "react";
-import { useMutation } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { URL } from "../../constants";
 import { useAppStore } from "../../stores";
 
 export const Home = () => {
-  const [positionNo, setPositionNo] = useState();
+  const [rooms, setRooms] = useState([]);
   const { push } = useHistory();
   const as = useAppStore();
-
+  const { data } = useQuery(
+    "rooms",
+    () =>
+      fetch(URL + `/api/room`, {
+        method: "GET",
+        // headers: {
+        //   "Content-Type": "application/json",
+        // },
+      }),
+    {
+      onSuccess: async (e) => {
+        const data = await e.json();
+        setRooms(data);
+      },
+      onError: (e) => {
+        console.log("onError: ", e);
+      },
+    }
+  );
   const { mutate } = useMutation(
     "connectRoom",
     (params: { roomNo: number; positionNo: number }) =>
@@ -29,7 +47,7 @@ export const Home = () => {
           as.onChangeIsEntered(true);
           push(`/room/${res.roomNo}/position/${res.positionNo}`);
         } else {
-          message.error('이미 존재하는 자리입니다.');
+          message.error("이미 존재하는 자리입니다.");
         }
       },
       onError: (e) => {
@@ -37,6 +55,7 @@ export const Home = () => {
       },
     }
   );
+  console.log("data : ", data);
   // const onClick = (roomNo: number) => {
   //   if (!positionNo) {
   //     return alert("자리는 0보다큰 숫자로 입력해주세요");
@@ -56,36 +75,51 @@ export const Home = () => {
         <Typography.Title level={3} style={{ textAlign: "center" }}>
           (1~6번) 클래스의 자리를 선택하여 참가해주세요.
         </Typography.Title>
-        <Space>
-          <Form onFinish={onFinish} layout="inline">
-            <Form.Item name="roomNo" initialValue={1} hidden />
-            <Form.Item
-              name="positionNo"
-              rules={[
-                {
-                  required: true,
-                  message: "특정 자리를 선택해주세요.",
-                },
-              ]}
-            >
-              <Select
-                style={{ width: 300 }}
-                placeholder="1번 클래스의 자리를 선택해주세요"
+        <Space direction="vertical">
+          <Space>
+            <Form onFinish={onFinish} layout="inline">
+              <Form.Item name="roomNo" initialValue={1} hidden />
+              <Form.Item
+                name="positionNo"
+                rules={[
+                  {
+                    required: true,
+                    message: "특정 자리를 선택해주세요.",
+                  },
+                ]}
               >
-                <Select.Option value={1}>1번자리</Select.Option>
-                <Select.Option value={2}>2번자리</Select.Option>
-                <Select.Option value={3}>3번자리</Select.Option>
-                <Select.Option value={4}>4번자리</Select.Option>
-                <Select.Option value={5}>5번자리</Select.Option>
-                <Select.Option value={6}>6번자리</Select.Option>
-                <Select.Option value={7}>7번자리</Select.Option>
-                <Select.Option value={8}>8번자리</Select.Option>
-                <Select.Option value={9}>9번자리</Select.Option>
-                <Select.Option value={10}>10번자리</Select.Option>
-              </Select>
-            </Form.Item>
-            <Button htmlType="submit">1번 클래스 참가</Button>
-          </Form>
+                <Select
+                  style={{ width: 300 }}
+                  placeholder="1번 클래스의 자리를 선택해주세요"
+                >
+                  <Select.Option value={1}>1번자리</Select.Option>
+                  <Select.Option value={2}>2번자리</Select.Option>
+                  <Select.Option value={3}>3번자리</Select.Option>
+                  <Select.Option value={4}>4번자리</Select.Option>
+                  <Select.Option value={5}>5번자리</Select.Option>
+                  <Select.Option value={6}>6번자리</Select.Option>
+                  <Select.Option value={7}>7번자리</Select.Option>
+                  <Select.Option value={8}>8번자리</Select.Option>
+                  <Select.Option value={9}>9번자리</Select.Option>
+                  <Select.Option value={10}>10번자리</Select.Option>
+                </Select>
+              </Form.Item>
+              <Button htmlType="submit">1번 클래스 참가</Button>
+            </Form>
+          </Space>
+          <>
+            {rooms.length > 0 && !!rooms[0].details?.length && (
+              <span>
+                참여자 :{" "}
+                {rooms[0].details?.map((v, i) => (
+                  <span style={{ color: "red" }}>
+                    {i > 0 && <span>, </span>}
+                    {v.no}번
+                  </span>
+                ))}{" "}
+              </span>
+            )}
+          </>
         </Space>
         <Space>
           <Form onFinish={onFinish} layout="inline">

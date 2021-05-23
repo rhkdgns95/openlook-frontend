@@ -14,7 +14,7 @@
     "cleanup": "rimraf .cache dist build",
     "start": "snowpack dev",
     "build": "yarn cleanup && parcel build public/index.html -d build --log-level 4 --no-source-maps --no-minify",
-    "build:dev": "yarn cleanup && parcel build public/index.html -d build --log-level 4 --no-source-maps --no-minify",
+    "build:dev": "yarn cleanup && cross-env NODE_ENV=dev parcel build public/index.html -d build --log-level 4 --no-source-maps --no-minify",
     "start:parcel": "yarn cleanup && parcel public/index.html -p 3000 --open --no-autoinstall",
     "start:clean": "yarn cleanup && snowpack dev --clean",
     "serve": "serve build"
@@ -46,6 +46,7 @@
     "@types/react-router-dom": "^5.1.7",
     "@types/simple-peer": "^9.6.3",
     "@types/styled-components": "^5.1.9",
+    "cross-env": "^7.0.3",
     "parcel-bundler": "^1.12.5",
     "react-hot-loader": "^4.13.0",
     "rimraf": "^3.0.2",

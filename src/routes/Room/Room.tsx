@@ -43,13 +43,16 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
       })
       .then((stream) => {
         userVideo.current?.srcObject = stream;
-
+        socketRef.current?.on('disconnect', (d) => {
+          alert("GOOD BYE");
+          socketRef.current?.off();
+          socketRef.current?.disconnect();
+        });
         /** 1. 방참가 */
         socketRef.current?.emit(Channel.JOIN, {
           roomNo: roomId,
           positionNo: positionId,
         });
-
         /** 2. 연결이 끊긴경우 */
         socketRef.current?.on(Channel.DISCONNECT, (positionNo) => {
           console.log(
@@ -111,9 +114,11 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
         console.log("stream: ", stream.id);
 
         /** 5. 스트림 정보를 받기위함. */
-        socketRef.current.on(Channel.RECEIVING_SIGNAL, (payload) => {
+        socketRef.current?.on(Channel.RECEIVING_SIGNAL, (payload) => {
+          console.log('PPP: ', payload);
+          console.log('peersRef.current: ', peersRef.current);
           const item = peersRef.current.find((p) => p.socketId === payload.id);
-          item.peer.signal(payload.signal);
+          item?.peer.signal(payload.signal);
         });
       })
       .catch(() => {});
@@ -159,11 +164,18 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
     });
 
     peer.on("signal", (signal) => {
-      socketRef.current.emit(Channel.RETURNING_SIGNAL, { signal, callerId });
+      socketRef.current?.emit(Channel.RETURNING_SIGNAL, { signal, callerId });
     });
     peer.signal(incomingSignal);
     return peer;
   }
+
+  useEffect(() => {
+    return () => {
+      socketRef.current?.close();
+    }
+  }, []);
+
   console.log("PEERS: ", peers);
   return (
     <>

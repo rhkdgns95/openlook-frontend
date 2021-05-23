@@ -121,36 +121,51 @@ export const Home = () => {
             )}
           </>
         </Space>
-        <Space>
-          <Form onFinish={onFinish} layout="inline">
-            <Form.Item name="roomNo" initialValue={1} hidden />
-            <Form.Item
-              name="positionNo"
-              rules={[
-                {
-                  required: true,
-                  message: "특정 자리를 선택해주세요.",
-                },
-              ]}
-            >
-              <Select
-                style={{ width: 300 }}
-                placeholder="2번 클래스의 자리를 선택해주세요"
+        <Space direction="vertical">
+          <Space>
+            <Form onFinish={onFinish} layout="inline">
+              <Form.Item name="roomNo" initialValue={2} hidden />
+              <Form.Item
+                name="positionNo"
+                rules={[
+                  {
+                    required: true,
+                    message: "특정 자리를 선택해주세요.",
+                  },
+                ]}
               >
-                <Select.Option value={1}>1번자리</Select.Option>
-                <Select.Option value={2}>2번자리</Select.Option>
-                <Select.Option value={3}>3번자리</Select.Option>
-                <Select.Option value={4}>4번자리</Select.Option>
-                <Select.Option value={5}>5번자리</Select.Option>
-                <Select.Option value={6}>6번자리</Select.Option>
-                <Select.Option value={7}>7번자리</Select.Option>
-                <Select.Option value={8}>8번자리</Select.Option>
-                <Select.Option value={9}>9번자리</Select.Option>
-                <Select.Option value={10}>10번자리</Select.Option>
-              </Select>
-            </Form.Item>
-            <Button htmlType="submit">2번 클래스 참가</Button>
-          </Form>
+                <Select
+                  style={{ width: 300 }}
+                  placeholder="2번 클래스의 자리를 선택해주세요"
+                >
+                  <Select.Option value={1}>1번자리</Select.Option>
+                  <Select.Option value={2}>2번자리</Select.Option>
+                  <Select.Option value={3}>3번자리</Select.Option>
+                  <Select.Option value={4}>4번자리</Select.Option>
+                  <Select.Option value={5}>5번자리</Select.Option>
+                  <Select.Option value={6}>6번자리</Select.Option>
+                  <Select.Option value={7}>7번자리</Select.Option>
+                  <Select.Option value={8}>8번자리</Select.Option>
+                  <Select.Option value={9}>9번자리</Select.Option>
+                  <Select.Option value={10}>10번자리</Select.Option>
+                </Select>
+              </Form.Item>
+              <Button htmlType="submit">2번 클래스 참가</Button>
+            </Form>
+          </Space>
+          <>
+            {rooms.length > 0 && rooms[1] && !!rooms[1].details?.length && (
+              <span>
+                참여자 :{" "}
+                {rooms[1].details?.map((v, i) => (
+                  <span style={{ color: "red" }}>
+                    {i > 0 && <span>, </span>}
+                    {v.no}번
+                  </span>
+                ))}{" "}
+              </span>
+            )}
+          </>
         </Space>
         <Space>
           <Form onFinish={onFinish} layout="inline">

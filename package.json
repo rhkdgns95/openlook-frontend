@@ -11,9 +11,13 @@
     }
   ],
   "scripts": {
+    "cleanup": "rimraf .cache dist build",
     "start": "snowpack dev",
-    "start:parcel": "parcel public/index.html -p 3000 --open --no-autoinstall",
-    "start:clean": "snowpack dev --clean"
+    "build": "yarn cleanup && parcel build public/index.html -d build --log-level 4 --no-source-maps --no-minify",
+    "build:dev": "yarn cleanup && parcel build public/index.html -d build --log-level 4 --no-source-maps --no-minify",
+    "start:parcel": "yarn cleanup && parcel public/index.html -p 3000 --open --no-autoinstall",
+    "start:clean": "yarn cleanup && snowpack dev --clean",
+    "serve": "serve build"
   },
   "dependencies": {
     "antd": "^4.15.6",
@@ -44,7 +48,10 @@
     "@types/styled-components": "^5.1.9",
     "parcel-bundler": "^1.12.5",
     "react-hot-loader": "^4.13.0",
+    "rimraf": "^3.0.2",
+    "serve": "^11.3.2",
     "snowpack": "^3.4.0",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "vercel": "^22.0.1"
   }
 }

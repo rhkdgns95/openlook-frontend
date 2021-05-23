@@ -44,9 +44,9 @@ export const Room: React.FC<RouteComponentProps> = (props) => {
       .then((stream) => {
         userVideo.current?.srcObject = stream;
         socketRef.current?.on('disconnect', (d) => {
-          alert("GOOD BYE");
           socketRef.current?.off();
           socketRef.current?.disconnect();
+          socketRef.current?.close();
         });
         /** 1. 방참가 */
         socketRef.current?.emit(Channel.JOIN, {

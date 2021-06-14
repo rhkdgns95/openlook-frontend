@@ -13,9 +13,11 @@
 - [x] Process 4. (방 참여 → 퇴장) 열어둔 소켓정보를 닫음.
 - [x] Process 5. (방 퇴장시) 해당 Room의 영상을 공유하는 유저들의 화면이 업데이트 (퇴장한 유저의 화면을 삭제)
 - [x] Process 6. (방 퇴장시) 해당 Room의 퇴장한 유저의 Position이 활성화 되어짐 (다른 유저가 접속이 가능)
-
+ 
 
 ## Refs
 - [webrtc](https://webrtc.org/getting-started/media-devices)
 - [simple-peer](https://github.com/feross/simple-peer) 
 - [parcel-bundeler](https://parceljs.org/)
+- [zustand](https://github.com/pmndrs/zustand)
+- [react-query](https://react-query.tanstack.com/)

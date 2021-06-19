@@ -3,7 +3,7 @@
 - Implementing webrtc using peerjs's library.
 
 ## Screen
-- 특정방에 유저들이 참여하는 경우  
+- 하나의 특정방에 유저들이 참여하는 경우  
   <img src="https://user-images.githubusercontent.com/46029124/122136104-c74e5c00-ce7c-11eb-9ec7-5361d78d0556.gif" width="100%">
 - 다른 방에 참여하는 경우  
   <img src="https://user-images.githubusercontent.com/46029124/122136149-d46b4b00-ce7c-11eb-8afd-0b428248259b.gif" width="100%">
